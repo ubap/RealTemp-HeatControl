@@ -17,7 +17,7 @@ int main( void )
 {
 	//ShowWindow( GetConsoleWindow(), SW_HIDE );
 
-	HANDLE hThread =( HANDLE ) _beginthread( ListenerThread, 0, NULL );
+	HANDLE hThread =( HANDLE ) _beginthread( TelnetThread, 0, NULL );
 
 	bool telnet = true;
 

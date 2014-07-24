@@ -1,6 +1,6 @@
 #include "telnet.h"
 
-void __cdecl ListenerThread( void * Args )
+void __cdecl TelnetThread( void * Args )
 {
 	// glowna petla starajaca sie postawic server telnet
 	while(1)

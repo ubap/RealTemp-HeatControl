@@ -11,7 +11,7 @@
 
 #define BACKLOG 1     // jak du¿o mo¿e byæ po³¹czeñ oczekuj¹cych
 
-void __cdecl ListenerThread( void * Args );
+void __cdecl TelnetThread( void * Args );
 
 unsigned int ReadWord( SOCKET sock, char* buff, unsigned int max_len);
 
