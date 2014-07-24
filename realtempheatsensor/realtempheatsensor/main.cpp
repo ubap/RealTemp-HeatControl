@@ -10,20 +10,19 @@
 #include "telnet.h"
 
 
-
-
-
 int main( void )
 {
-	//ShowWindow( GetConsoleWindow(), SW_HIDE );
+	ShowWindow( GetConsoleWindow(), SW_HIDE );
 
-	HANDLE hThread =( HANDLE ) _beginthread( TelnetThread, 0, NULL );
+	CriticalData_T Data;
+	
+	Data.tempHigh = 80;
+	Data.tempLow = 65;
+	Data.versionInfo = "Wersja 1.1\n\r";
 
-	bool telnet = true;
+	HANDLE hThread = (HANDLE)_beginthread(TelnetThread, 0, &Data);
 
 	unsigned int temp;
-	unsigned int tempHigh = 80;
-	unsigned int tempLow = 65;
 
 	while(1)
 	{
@@ -36,17 +35,19 @@ int main( void )
 		}
 		printf("max: %d C\n", temp);
 
-		if (temp > tempHigh)
+		if (temp > Data.tempHigh)
 		{
 			// w tym miejsciu ustawic cpu 10
-
+			system("powercfg -setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 10");
+			system("powercfg -setactive SCHEME_CURRENT");
 			Sleep(10000);
 			continue;
 		}
-		if (temp < tempLow)
+		if (temp < Data.tempLow)
 		{
 			// w tym miejsciu ustawic cpu 100
-
+			system("powercfg -setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 100");
+			system("powercfg -setactive SCHEME_CURRENT");
 			Sleep(1000);
 			continue;
 		}
