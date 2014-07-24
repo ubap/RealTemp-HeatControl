@@ -2,12 +2,11 @@
 #include <winsock.h> 
 // beginthread
 #include <process.h>
-//mutex
-//#include <thread.h>
+
 //debug
 #include <cstdio>
 
-#define MYPORT 3491    // port, z którym u¿ytkownicy bêd¹ siê ³¹czyli
+#define MYPORT 3434   // port, z którym u¿ytkownicy bêd¹ siê ³¹czyli
 
 #define BACKLOG 1     // jak du¿o mo¿e byæ po³¹czeñ oczekuj¹cych
 
@@ -15,7 +14,9 @@ struct CriticalData_T
 {
 	unsigned int tempHigh;
 	unsigned int tempLow;
+	unsigned int temp;
 	char* versionInfo;
+	CRITICAL_SECTION cs;
 };
 
 // // wzkaznik na globalne dane
@@ -25,7 +26,7 @@ static CriticalData_T *Data;
 // socket z otwaortym polaczeniem
 static int new_fd;
 
-enum cmdret {KONIEC, POMOC, USTAW, BLAD, NIEZNANE};
+enum cmdret {KONIEC, POMOC, USTAW, BLAD, NIEZNANE, POKAZ, UKRYJ, TEMP};
 
 void __cdecl TelnetThread( void * Args );
 

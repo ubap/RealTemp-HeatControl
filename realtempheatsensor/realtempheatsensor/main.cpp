@@ -2,13 +2,12 @@
 #include <windows.h>
 
 #include <winsock.h> 
-
-
 #include <cstdio>
 //ReadTemperature
 #include "realtemp.h"
 #include "telnet.h"
 
+#define VERINFO "Wersja 1.2\n\r"
 
 int main( void )
 {
@@ -18,43 +17,53 @@ int main( void )
 	
 	Data.tempHigh = 80;
 	Data.tempLow = 65;
-	Data.versionInfo = "Wersja 1.1\n\r";
+	Data.versionInfo = VERINFO;
+
+	InitializeCriticalSection(&Data.cs);
 
 	HANDLE hThread = (HANDLE)_beginthread(TelnetThread, 0, &Data);
-
-	unsigned int temp;
-
+	int temp;
+	bool fullThrottle = true;
 	while(1)
 	{
 		Sleep(1000);
-		//system("cls");
-		if (!ReadTemperature(&temp))
+
+		// tylko 1 watek na raz
+		EnterCriticalSection(&Data.cs);
+		int success = ReadTemperature(&Data.temp);
+		temp = Data.temp;
+		int tempHigh = Data.tempHigh;
+		int tempLow = Data.tempLow;
+		LeaveCriticalSection(&Data.cs);
+
+		printf("%d\n", temp);
+
+		if (!success)
 		{
 			Sleep(5000);
 			continue;
 		}
-		printf("max: %d C\n", temp);
 
-		if (temp > Data.tempHigh)
+		if (temp > tempHigh && fullThrottle)
 		{
 			// w tym miejsciu ustawic cpu 10
 			system("powercfg -setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 10");
 			system("powercfg -setactive SCHEME_CURRENT");
+			fullThrottle = false;
+			printf("przekroczono high (%d C)\n", tempHigh);
 			Sleep(10000);
 			continue;
 		}
-		if (temp < Data.tempLow)
+		if (temp < tempLow && !fullThrottle)
 		{
 			// w tym miejsciu ustawic cpu 100
 			system("powercfg -setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMAX 100");
 			system("powercfg -setactive SCHEME_CURRENT");
-			Sleep(1000);
+			fullThrottle = true;
+			printf("przekroczono low (%d C)\n", tempLow);
 			continue;
 		}
-		
-
 	}
 
-	
     return 0;
 }

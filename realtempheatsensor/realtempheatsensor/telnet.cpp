@@ -112,7 +112,8 @@ cmdret ProcessCmd(char* cmd)
 		return KONIEC;
 	} else if (strcmp("pomoc", cmd) == 0)
 	{
-		SendWord(new_fd, "Dostepne polecenia:\n\rkoniec - konczy sesje telnet\n\rpomoc - wyswietla pomoc\n\rustaw temp_high/temp_low wartosc - ustawia wysoka/niska temperature\n\r");
+		SendWord(new_fd, "Dostepne polecenia:\n\rkoniec - konczy sesje telnet\n\rpomoc - wyswietla pomoc\n\rustaw high/low wartosc - ustawia wysoka/niska temperature\n\r");
+		// tyko odczyt Data, chyba nie trzeba mutexu
 		SendWord(new_fd, Data->versionInfo);
 		return POMOC;
 	} else if (strcmp("ustaw", cmd) == 0)
@@ -120,29 +121,57 @@ cmdret ProcessCmd(char* cmd)
 		// odczytanie parametru
 		if (ReadWord(new_fd, cmd, MAX_CMD_LEN) == -1)
 			return BLAD;
-		if (strcmp("temp_high", cmd) == 0)
+		if (strcmp("high", cmd) == 0)
 		{
 			if (ReadWord(new_fd, cmd, MAX_CMD_LEN) == -1)
 				return BLAD;
+
+			EnterCriticalSection(&Data->cs);
 			Data->tempHigh = atoi(cmd);
+			unsigned int tempHigh = Data->tempHigh;
+			LeaveCriticalSection(&Data->cs);
+
 			char buff[10];
 			SendWord(new_fd, "Temperatura wysoka ustawiona na: ");
-			SendWord(new_fd, _itoa(Data->tempHigh, buff, 10));
+			SendWord(new_fd, _itoa(tempHigh, buff, 10));
 			SendWord(new_fd, " C\n\r");
 
-		} else if (strcmp("temp_low", cmd) == 0)
+		} else if (strcmp("low", cmd) == 0)
 		{
 			if (ReadWord(new_fd, cmd, MAX_CMD_LEN) == -1)
 				return BLAD;
+
+			EnterCriticalSection(&Data->cs);
 			Data->tempLow = atoi(cmd);
+			unsigned int tempLow = Data->tempLow;
+			LeaveCriticalSection(&Data->cs);
+
 			char buff[10];
 			SendWord(new_fd, "Temperatura wysoka ustawiona na: ");
-			SendWord(new_fd, _itoa(Data->tempLow, buff, 10));
+			SendWord(new_fd, _itoa(tempLow, buff, 10));
 			SendWord(new_fd, " C\n\r");
 
 		} else
 			return BLAD;
 		return USTAW;
+	} else if (strcmp("pokaz", cmd) == 0)
+	{
+		ShowWindow( GetConsoleWindow(), SW_SHOW );
+		return POKAZ;
+	} else if (strcmp("ukryj", cmd) == 0)
+	{
+		ShowWindow( GetConsoleWindow(), SW_HIDE );
+		return UKRYJ;
+	} else if (strcmp("temp", cmd) == 0)
+	{
+		EnterCriticalSection(&Data->cs);
+		cmd = _itoa(Data->temp, cmd, 10);
+		LeaveCriticalSection(&Data->cs);
+
+		SendWord(new_fd, "Aktualna temperatura: ");
+		SendWord(new_fd, cmd);
+		SendWord(new_fd, " C.\n\r");
+		return TEMP;
 	}
 	
 	return NIEZNANE;

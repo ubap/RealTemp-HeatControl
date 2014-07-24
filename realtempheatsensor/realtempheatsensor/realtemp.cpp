@@ -24,7 +24,7 @@ bool ReadTemperature(unsigned int *temperature)
 	//CloseHandle(hProcess);
 
 	// temperature chyba nie bedzie powyzej MAX_TEMP 
-	if (temp1 > MAX_TEMP || temp2 > MAX_TEMP)
+	if (temp1 > MAX_TEMP || temp2 > MAX_TEMP || temp1 < MIN_TEMP || temp2 < MIN_TEMP)
 			return false;
 
 	*temperature =  temp1 > temp2 ? temp1 : temp2;
